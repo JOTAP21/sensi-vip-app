@@ -17,9 +17,12 @@ jobs:
       - name: Transformando HTML em APK
         run: |
           npm install -g @bubblewrap/cli
-          # O comando 'yes' responde "y" para todas as perguntas do instalador automaticamente
-          yes | bubblewrap init --manifest=https://sensi-vip.vercel.app/manifest.json || true
-          yes | bubblewrap build --noprompt
+          # Criando um arquivo de configuração padrão para o Bubblewrap não perguntar nada
+          mkdir -p ~/.bubblewrap
+          echo '{"jdkPath":"/usr/lib/jvm/java-17-openjdk-amd64","androidSdkPath":"/home/runner/android-sdk"}' > ~/.bubblewrap/config.json
+          
+          # Build direto sem interação
+          bubblewrap build --noprompt
 
       - name: Disponibilizar APK para Download
         uses: actions/upload-artifact@v4 # ESSA É A LINHA QUE ESTAVA DANDO ERRO
