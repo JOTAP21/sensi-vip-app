@@ -1,0 +1,26 @@
+name: Gerar APK Sensi VIP
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Build APK
+        run: |
+          npm install -g @bubblewrap/cli
+          # Isso vai transformar seu HTML em um App Android
+          bubblewrap init --manifest=https://sensi-vip.vercel.app/manifest.json --noprompt || true
+          bubblewrap build --noprompt
+          
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: App-Pronto
+          path: ./*.apk

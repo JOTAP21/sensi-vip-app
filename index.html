@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensi VIP - Oficial</title>
+    <style>
+        body { background-color: #000; color: #FFF; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 400px; margin: auto; border: 2px solid #FF8C00; border-radius: 20px; padding: 20px; background: #111; box-shadow: 0 0 15px rgba(255, 140, 0, 0.2); }
+        
+        .header { color: #FF8C00; text-align: center; margin-bottom: 25px; }
+        .device-info { background: #FF8C00; color: #000; padding: 6px 18px; border-radius: 25px; font-size: 0.85em; font-weight: bold; display: inline-block; margin-bottom: 20px; }
+
+        #login-screen { text-align: center; padding: 40px 0; }
+        input { width: 85%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #FF8C00; background: #222; color: #FFF; outline: none; }
+        
+        #app-content { display: none; }
+        .blur-overlay { filter: blur(10px); pointer-events: none; opacity: 0.5; }
+        .section-title { color: #FF8C00; font-size: 1.1em; font-weight: bold; margin-bottom: 15px; border-left: 4px solid #FF8C00; padding-left: 10px; text-transform: uppercase; }
+
+        .slider-group { margin-bottom: 18px; }
+        .slider-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9em; }
+        .bar-bg { height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #FF8C00, #ffae42); width: 0%; transition: 0.8s; }
+
+        .btn-gerar { background: #FF8C00; color: #000; border: none; width: 100%; padding: 16px; font-weight: 900; border-radius: 10px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+        
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99; }
+        .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; border: 1px solid #FF8C00; border-radius: 15px; text-align: center; width: 280px; }
+        
+        .btn-confirm { background: #FF8C00; color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 10px 5px; }
+        .btn-cancel { background: #444; color: #FFF; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 10px 5px; }
+
+        /* Estilo do Balão (Toast) adicionado */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #FF8C00;
+            color: #000;
+            text-align: center;
+            border-radius: 10px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: bold;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body onload="inicializarApp()">
+
+<div class="container">
+    <div id="login-screen">
+        <h2 style="color: #FF8C00;">ACESSAR PAINEL</h2>
+        <input type="text" id="userIn" placeholder="Usuário">
+        <input type="password" id="passIn" placeholder="Senha de Acesso">
+        <button class="btn-gerar" onclick="realizarLogin()">Entrar agora</button>
+    </div>
+
+    <div id="app-content">
+        <div class="header">
+            <div id="device-display" class="device-info">Detectando aparelho...</div>
+        </div>
+
+        <div id="sensi-container" class="blur-overlay">
+            <div class="section-title">Sensibilidade Atual</div>
+            <div id="sliders-list"></div>
+            
+            <div class="section-title" style="margin-top: 25px;">Ajuste de DPI</div>
+            <div class="slider-group">
+                <div class="slider-label"><span>DPI Recomendada</span> <span id="val-dpi" style="color: #FF8C00;">---</span></div>
+                <div class="bar-bg"><div id="fill-dpi" class="bar-fill"></div></div>
+            </div>
+        </div>
+
+        <button id="btn-action" class="btn-gerar" onclick="checarGeracao()">GERAR SENSIBILIDADE IA</button>
+    </div>
+</div>
+
+<div id="modal-loading" class="modal-bg">
+    <div class="modal-box"><strong style="color: #FF8C00;">PROCESSANDO...</strong><p>A IA está calculando sua sensi ideal.</p></div>
+</div>
+
+<div id="modal-confirm" class="modal-bg">
+    <div class="modal-box">
+        <p>Já geramos uma sensibilidade para você, não gostou?<br><strong>Confirme para gerar outra!</strong></p>
+        <button class="btn-confirm" onclick="confirmarNovaGeracao()">SIM</button>
+        <button class="btn-cancel" onclick="fecharModal()">NÃO</button>
+    </div>
+</div>
+
+<div id="toast">Login ou senha incorretos!</div>
+
+<script>
+    let jaGerou = false;
+    const labels = ["Geral", "Red Dot", "Mira 2x", "Mira 4x", "AWM"];
+    
+    const list = document.getElementById('sliders-list');
+    labels.forEach(label => {
+        list.innerHTML += `
+            <div class="slider-group">
+                <div class="slider-label"><span>${label}</span> <span id="val-${label}" style="color: #FF8C00;">---</span></div>
+                <div class="bar-bg"><div id="fill-${label}" class="bar-fill"></div></div>
+            </div>`;
+    });
+
+    function inicializarApp() {
+        verificarEstadoLogin();
+        detectarDispositivo();
+    }
+
+    function detectarDispositivo() {
+        const ua = navigator.userAgent;
+        let modelo = "Notebook/PC";
+        
+        if (ua.match(/Android/i)) {
+            // Lógica corrigida para pegar o modelo real e não a versão do Android
+            const match = ua.match(/Android\s+[^;]+;\s+([^;)]+)/);
+            modelo = (match && match[1]) ? match[1].trim() : "Android";
+        }
+        document.getElementById('device-display').innerText = modelo + " Detectado";
+    }
+
+    function verificarEstadoLogin() {
+        if (localStorage.getItem("logadoVip") === "true") {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        }
+    }
+
+    function mostrarToast() {
+        const x = document.getElementById("toast");
+        x.className = "show";
+        setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+    }
+
+    function realizarLogin() {
+        const userField = document.getElementById('userIn');
+        const passField = document.getElementById('passIn');
+        
+        if (userField.value === "UsuarioVip" && passField.value === "usuario21") {
+            localStorage.setItem("logadoVip", "true");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        } else {
+            mostrarToast(); // Troquei o alert pelo balão
+            userField.value = "";
+            passField.value = "";
+        }
+    }
+
+    function fecharModal() { document.getElementById('modal-confirm').style.display = 'none'; }
+
+    function checarGeracao() {
+        if (jaGerou) {
+            document.getElementById('modal-confirm').style.display = 'block';
+        } else {
+            executarGeracao();
+        }
+    }
+
+    function confirmarNovaGeracao() {
+        fecharModal();
+        executarGeracao();
+    }
+
+    function executarGeracao() {
+        document.getElementById('modal-loading').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('modal-loading').style.display = 'none';
+            document.getElementById('sensi-container').classList.remove('blur-overlay');
+            jaGerou = true;
+
+            labels.forEach(label => {
+                let valor = Math.floor(Math.random() * (200 - 130 + 1)) + 130;
+                document.getElementById(`val-${label}`).innerText = valor;
+                document.getElementById(`fill-${label}`).style.width = (valor / 200 * 100) + "%";
+            });
+
+            let dpi = Math.floor(Math.random() * (750 - 450 + 1)) + 450;
+            document.getElementById('val-dpi').innerText = dpi;
+            document.getElementById('fill-dpi').style.width = "85%";
+            document.getElementById('btn-action').innerText = "Recalcular Sensi";
+        }, 2500);
+    }
+</script>
+
+</body>
+</html>
