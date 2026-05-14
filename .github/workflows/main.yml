@@ -14,18 +14,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gerar APK Sem Perguntas
+      - name: Gerar APK Local
         run: |
           npm install -g @bubblewrap/cli
-          
-          # Configura os caminhos para o robô não ficar perdido
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"${JAVA_HOME}\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
           
-          # Cria o arquivo de informações do App
-          echo '{"name":"Sensi VIP","short_name":"SensiVIP","start_url":"/index.html","display":"standalone","orientation":"portrait","background_color":"#000000","theme_color":"#FF8C00","icons":[{"src":"https://via.placeholder.com/512","sizes":"512x512","type":"image/png"}]}' > manifest.json
+          # Criando o manifest apontando para o seu arquivo index2.html
+          echo '{
+            "name": "Sensi VIP",
+            "short_name": "SensiVIP",
+            "start_url": "./index2.html",
+            "display": "standalone",
+            "background_color": "#000000",
+            "theme_color": "#FF8C00",
+            "icons": [{ "src": "https://via.placeholder.com/512", "sizes": "512x512", "type": "image/png" }]
+          }' > manifest.json
           
-          # Gera o projeto e constrói o APK direto
+          # Gerando sem perguntar nada
           bubblewrap init --manifest=manifest.json --noprompt
           bubblewrap build --noprompt
 
