@@ -17,8 +17,9 @@ jobs:
       - name: Transformando HTML em APK
         run: |
           npm install -g @bubblewrap/cli
-          bubblewrap init --manifest=https://sensi-vip.vercel.app/manifest.json --noprompt || true
-          bubblewrap build --noprompt
+          # O comando 'yes' responde "y" para todas as perguntas do instalador automaticamente
+          yes | bubblewrap init --manifest=https://sensi-vip.vercel.app/manifest.json || true
+          yes | bubblewrap build --noprompt
 
       - name: Disponibilizar APK para Download
         uses: actions/upload-artifact@v4 # ESSA É A LINHA QUE ESTAVA DANDO ERRO
