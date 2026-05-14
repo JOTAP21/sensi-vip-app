@@ -8,23 +8,24 @@ jobs:
       - name: Baixando seu codigo
         uses: actions/checkout@v4
 
-      - name: Instalar Node e Bubblewrap
-        run: npm install -g @bubblewrap/cli
+      - name: Configurar Java e Node
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Configurar e Gerar APK
+      - name: Gerar APK Sem Perguntas
         run: |
-          # Criando o arquivo de manifest necessário para o App
-          echo '{
-            "name": "Sensi VIP",
-            "short_name": "SensiVIP",
-            "start_url": "./index.html",
-            "display": "standalone",
-            "background_color": "#000000",
-            "theme_color": "#FF8C00",
-            "icons": [{ "src": "https://via.placeholder.com/512", "sizes": "512x512", "type": "image/png" }]
-          }' > manifest.json
-
-          # Comando que gera o projeto Android sem fazer perguntas
+          npm install -g @bubblewrap/cli
+          
+          # Configura os caminhos para o robô não ficar perdido
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"${JAVA_HOME}\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
+          
+          # Cria o arquivo de informações do App
+          echo '{"name":"Sensi VIP","short_name":"SensiVIP","start_url":"/index.html","display":"standalone","orientation":"portrait","background_color":"#000000","theme_color":"#FF8C00","icons":[{"src":"https://via.placeholder.com/512","sizes":"512x512","type":"image/png"}]}' > manifest.json
+          
+          # Gera o projeto e constrói o APK direto
           bubblewrap init --manifest=manifest.json --noprompt
           bubblewrap build --noprompt
 
