@@ -1,42 +1,23 @@
-name: Gerar APK Sensi VIP
+name: Criar APK Direto
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixando seu codigo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Java e Node
-        uses: actions/setup-java@v4
+      - name: Build APK
+        uses: Gear-Labs/pwa-to-apk@v1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          # Link do seu site (pode ser o do Vercel que você já tem)
+          url: "https://sensi-vip.vercel.app"
+          name: "Sensi VIP"
+          icon: "https://via.placeholder.com/512.png"
 
-      - name: Gerar APK Local
-        run: |
-          npm install -g @bubblewrap/cli
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"${JAVA_HOME}\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
-          
-          # Criando o manifest apontando para o seu arquivo index2.html
-          echo '{
-            "name": "Sensi VIP",
-            "short_name": "SensiVIP",
-            "start_url": "./index2.html",
-            "display": "standalone",
-            "background_color": "#000000",
-            "theme_color": "#FF8C00",
-            "icons": [{ "src": "https://via.placeholder.com/512", "sizes": "512x512", "type": "image/png" }]
-          }' > manifest.json
-          
-          # Gerando sem perguntar nada
-          bubblewrap init --manifest=manifest.json --noprompt
-          bubblewrap build --noprompt
-
-      - name: Disponibilizar APK para Download
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Instalador-Sensi-VIP
-          path: ./*.apk
+          name: App-Sensi-VIP
+          path: output/*.apk
