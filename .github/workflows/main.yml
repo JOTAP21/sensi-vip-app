@@ -1,23 +1,33 @@
-name: Criar APK Direto
+name: Gerar APK Local via Cordova
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Baixando seu codigo
         uses: actions/checkout@v4
 
-      - name: Build APK
-        uses: Gear-Labs/pwa-to-apk@v1
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
-          # Link do seu site (pode ser o do Vercel que você já tem)
-          url: "https://sensi-vip.vercel.app"
-          name: "Sensi VIP"
-          icon: "https://via.placeholder.com/512.png"
+          java-version: '11'
+          distribution: 'temurin'
 
-      - name: Upload APK
+      - name: Instalar Cordova e Gerar APK
+        run: |
+          npm install -g cordova
+          # Cria o projeto android internamente
+          cordova create projeto com.jotap.sensivip SensiVIP
+          cd projeto
+          cordova platform add android
+          # Copia o seu arquivo index.html (garanta que o nome está exato) para dentro do app
+          cp ../index.html www/index.html
+          # Compila o instalador
+          cordova build android --no-telemetry
+
+      - name: Disponibilizar APK para Download
         uses: actions/upload-artifact@v4
         with:
-          name: App-Sensi-VIP
-          path: output/*.apk
+          name: Sensi-VIP-Instalador
+          path: projeto/platforms/android/app/build/outputs/apk/debug/*.apk
