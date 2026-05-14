@@ -6,26 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Baixando seu codigo
-        uses: actions/checkout@v4 # Atualizado para v4
+        uses: actions/checkout@v4
 
-      - name: Configurando Ambiente
-        uses: actions/setup-java@v4 # Atualizado para v4
+      - name: Transformar em App Android
+        uses: simple-elf/pwa-to-apk@v2.0
         with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Transformando HTML em APK
-        run: |
-          npm install -g @bubblewrap/cli
-          # Criando um arquivo de configuração padrão para o Bubblewrap não perguntar nada
-          mkdir -p ~/.bubblewrap
-          echo '{"jdkPath":"/usr/lib/jvm/java-17-openjdk-amd64","androidSdkPath":"/home/runner/android-sdk"}' > ~/.bubblewrap/config.json
-          
-          # Build direto sem interação
-          bubblewrap build --noprompt
+          # URL do seu site (pode ser o link do seu proprio github pages se tiver)
+          url: "https://jotap21.github.io/sensi-vip-app/"
+          name: "Sensi VIP"
 
       - name: Disponibilizar APK para Download
-        uses: actions/upload-artifact@v4 # ESSA É A LINHA QUE ESTAVA DANDO ERRO
+        uses: actions/upload-artifact@v4
         with:
           name: Instalador-Sensi-VIP
           path: ./*.apk
