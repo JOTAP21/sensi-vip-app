@@ -5,22 +5,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Java
-        uses: actions/setup-java@v3
+      - name: Baixando seu codigo
+        uses: actions/checkout@v4 # Atualizado para v4
+
+      - name: Configurando Ambiente
+        uses: actions/setup-java@v4 # Atualizado para v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
-      - name: Build APK
+
+      - name: Transformando HTML em APK
         run: |
           npm install -g @bubblewrap/cli
-          # Isso vai transformar seu HTML em um App Android
           bubblewrap init --manifest=https://sensi-vip.vercel.app/manifest.json --noprompt || true
           bubblewrap build --noprompt
-          
-      - name: Upload
-        uses: actions/upload-artifact@v3
+
+      - name: Disponibilizar APK para Download
+        uses: actions/upload-artifact@v4 # ESSA É A LINHA QUE ESTAVA DANDO ERRO
         with:
-          name: App-Pronto
+          name: Instalador-Sensi-VIP
           path: ./*.apk
