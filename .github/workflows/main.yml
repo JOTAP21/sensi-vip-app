@@ -8,12 +8,25 @@ jobs:
       - name: Baixando seu codigo
         uses: actions/checkout@v4
 
-      - name: Transformar em App Android
-        uses: simple-elf/pwa-to-apk@v2.0
-        with:
-          # URL do seu site (pode ser o link do seu proprio github pages se tiver)
-          url: "https://jotap21.github.io/sensi-vip-app/"
-          name: "Sensi VIP"
+      - name: Instalar Node e Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Configurar e Gerar APK
+        run: |
+          # Criando o arquivo de manifest necessário para o App
+          echo '{
+            "name": "Sensi VIP",
+            "short_name": "SensiVIP",
+            "start_url": "./index.html",
+            "display": "standalone",
+            "background_color": "#000000",
+            "theme_color": "#FF8C00",
+            "icons": [{ "src": "https://via.placeholder.com/512", "sizes": "512x512", "type": "image/png" }]
+          }' > manifest.json
+
+          # Comando que gera o projeto Android sem fazer perguntas
+          bubblewrap init --manifest=manifest.json --noprompt
+          bubblewrap build --noprompt
 
       - name: Disponibilizar APK para Download
         uses: actions/upload-artifact@v4
